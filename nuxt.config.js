@@ -24,12 +24,15 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
+    { src: '~/plugins/global.js', ssr: false },
     { src: '~/plugins/axios', ssr: true },
+    { src: '~/plugins/persistedState.js'},
     '~/plugins/auth.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
+  ssr: false,
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
@@ -60,14 +63,14 @@ export default {
       local: {
         scheme: 'refresh',
         token: {
-          property: 'access_token',
-          maxAge: 1800,
+          property: 'token',
+          maxAge: Function(`'use strict'; return (${process.env.ACCESS_TOKEN_LIFE || 1800})`)(),
           // type: 'Bearer'
         },
         refreshToken: {
           property: 'refresh_token',
           data: 'refresh_token',
-          maxAge: 60 * 60 * 24 * 30
+          maxAge: Function(`'use strict'; return (${process.env.REFRESH_TOKEN_LIFE || 60 * 60 * 24 * 30})`)(),
         },
         user: {
           property: 'user',

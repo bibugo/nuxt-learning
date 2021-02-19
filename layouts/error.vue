@@ -6,7 +6,7 @@
           {{ pageNotFound }}
         </h1>
         <h1 v-else>
-          {{ otherError }}
+          {{ otherError }}. Error Code: {{ error.statusCode }}
         </h1>
         <NuxtLink to="/"> Home page </NuxtLink>
       </v-col>
@@ -16,7 +16,7 @@
 
 <script>
 export default {
-  layout: "empty",
+  // layout: "empty",
   props: {
     error: {
       type: Object,
