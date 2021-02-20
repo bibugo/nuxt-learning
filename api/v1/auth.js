@@ -83,7 +83,7 @@ exports.meta = function (req, res) {
         action: "mdi-tag",
         items: [
           { title: "Form", to: "/form" },
-          { title: "FormContent", to: "/form/content" },
+          { title: "Builder", to: "/form/builder" },
         ],
         title: "System",
       },

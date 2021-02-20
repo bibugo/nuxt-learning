@@ -58,6 +58,7 @@
             :key="child.title"
             link
             :to="child.to"
+            exact
           >
             <v-list-item-content>
               <v-list-item-title v-text="child.title"></v-list-item-title>
