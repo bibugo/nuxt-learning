@@ -1,63 +1,45 @@
 <template>
-  <!-- <v-card flat tile class="mx-auto fill-height"> -->
-  <v-row class="fill-height" no-gutters>
-    <v-navigation-drawer v-model="showDrawer">
-      <v-toolbar dense flat>
-        <v-toolbar-title> 字段列表</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-btn icon v-if="batch.length > 0">
-          <v-icon color="error">mdi-trash-can-outline</v-icon>
-        </v-btn>
-        <v-speed-dial
-          v-model="fab"
-          direction="bottom"
-          transition="slide-y-transition"
-        >
-          <template v-slot:activator>
-            <v-btn v-model="fab" elevation="0" icon small fab>
-              <v-icon v-if="fab"> mdi-close </v-icon>
-              <v-icon v-else> mdi-server-plus </v-icon>
+  <v-container fluid fill-height align-start pa-0>
+    <v-navigation-drawer v-model="showDrawer" :width="showDrawer ? 256 : 0">
+      <template v-slot:prepend>
+        <v-toolbar dense flat>
+          <v-toolbar-title> 字段 </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon v-if="batchFields.length > 0">
+            <v-icon color="error">mdi-trash-can-outline</v-icon>
+          </v-btn>
+          <v-speed-dial
+            v-model="fab"
+            direction="bottom"
+            transition="slide-y-transition"
+          >
+            <template v-slot:activator>
+              <v-btn v-model="fab" elevation="0" icon small fab>
+                <v-icon v-if="fab"> mdi-close </v-icon>
+                <v-icon v-else> mdi-server-plus </v-icon>
+              </v-btn>
+            </template>
+            <v-btn fab dark small color="green">
+              <v-icon>mdi-pencil</v-icon>
             </v-btn>
-          </template>
-          <v-btn fab dark small color="green">
-            <v-icon>mdi-pencil</v-icon>
-          </v-btn>
-          <v-btn fab dark small color="indigo">
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-          <v-btn fab dark small color="red">
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
-        </v-speed-dial>
-      </v-toolbar>
+            <v-btn fab dark small color="indigo">
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+            <v-btn fab dark small color="red">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </v-speed-dial>
+        </v-toolbar>
+      </template>
       <v-divider></v-divider>
       <v-list dense>
-        <v-list-item-group>
-          <v-list-item>
+        <v-list-item-group v-model="selectedField">
+          <v-list-item v-for="(field, index) in formObject.fields" :key="index">
             <v-list-item-action class="mr-2">
               <v-checkbox
                 dense
-                true-value="1"
-                false-value="-1"
-                @change="selectChange"
-              ></v-checkbox>
-            </v-list-item-action>
-            <v-list-item-action class="mx-2">
-              <v-icon>mdi-form-textbox</v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>字段</v-list-item-title>
-            </v-list-item-content>
-            <v-list-item-action class="ml-0">
-              <v-icon>mdi-arrow-down-circle-outline</v-icon>
-            </v-list-item-action>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-action class="mr-2">
-              <v-checkbox
-                dense
-                true-value="2"
-                false-value="-2"
+                :true-value="index + 1"
+                :false-value="-(index + 1)"
                 @change="selectChange"
               ></v-checkbox>
             </v-list-item-action>
@@ -65,13 +47,29 @@
               <v-icon>mdi-form-dropdown</v-icon>
             </v-list-item-action>
             <v-list-item-content>
-              <v-list-item-title>字段2</v-list-item-title>
+              <v-list-item-title>{{ field.label }}</v-list-item-title>
             </v-list-item-content>
             <v-list-item-action>
-              <v-icon>mdi-arrow-up-circle-outline</v-icon>
+              <v-btn
+                icon
+                outlined
+                x-small
+                v-if="index != 0"
+                @click.native="fieldUp(index)"
+              >
+                <v-icon>mdi-arrow-up</v-icon>
+              </v-btn>
             </v-list-item-action>
             <v-list-item-action class="ml-0">
-              <v-icon>mdi-arrow-down-circle-outline</v-icon>
+              <v-btn
+                icon
+                outlined
+                x-small
+                v-if="index != fieldCount - 1"
+                @click.native="fieldDown(index)"
+              >
+                <v-icon>mdi-arrow-down</v-icon>
+              </v-btn>
             </v-list-item-action>
           </v-list-item>
         </v-list-item-group>
@@ -79,69 +77,109 @@
     </v-navigation-drawer>
 
     <v-card flat tile class="grow">
-      <v-container>
+      <v-card-title class="justify-center">{{ formObject.title }}</v-card-title>
+      <v-card-subtitle class="text-center">{{
+        formObject.subtitle
+      }}</v-card-subtitle>
+      <v-card-text>
         <v-row>
-          <v-col cols="12" md="4">
-            <v-hover v-slot="{ hover }">
-              <div :class="hover ? 'border' : 'no-border'" @click.stop="selectItem">
-                <v-text-field dense label="First name"></v-text-field>
-              </div>
-            </v-hover>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-hover v-slot="{ hover }">
-              <div :class="hover ? 'border' : 'no-border'">
-                <v-text-field dense label="First name"></v-text-field>
-              </div>
-            </v-hover>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-hover v-slot="{ hover }">
-              <div :class="hover ? 'border' : 'no-border'">
-                <v-text-field dense label="First name"></v-text-field>
-              </div>
-            </v-hover>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-hover v-slot="{ hover }">
-              <div :class="hover ? 'border' : 'no-border'">
-                <v-text-field dense label="First name"></v-text-field>
-              </div>
+          <v-col
+            cols="12"
+            v-for="(field, index) in formObject.fields"
+            :key="index"
+            :md="field.cols"
+          >
+            <v-hover v-slot="{ hover }" :disabled="!fieldReveal">
+              <v-card
+                flat
+                @click.native="selectItem(index)"
+                elevation="0"
+                :ripple="fieldReveal ? { class: 'primary--text' } : false"
+              >
+                <div v-if="hover && fieldReveal" class="hover-reveal" />
+                <v-text-field
+                  dense
+                  :label="field.label"
+                  v-if="field.type == 'text-field'"
+                ></v-text-field>
+                <v-text-field
+                  dense
+                  :label="field.label"
+                  v-if="field.type == 'text-field1'"
+                ></v-text-field>
+              </v-card>
             </v-hover>
           </v-col>
         </v-row>
-      </v-container>
-
-      <v-fab-transition>
+        <v-fab-transition>
+          <v-btn
+            class="mt-8"
+            color="pink"
+            fab
+            dark
+            small
+            absolute
+            top
+            right
+            @click.stop="toggleDrawer"
+          >
+            <v-icon>mdi-fullscreen{{ `${showDrawer ? "" : "-exit"}` }}</v-icon>
+          </v-btn>
+        </v-fab-transition>
+      </v-card-text>
+      <v-card-actions>
         <v-btn
-          class="mt-8"
-          color="pink"
-          fab
-          dark
-          small
-          absolute
-          top
-          right
-          @click.stop="toggleDrawer"
+          text
+          :color="fieldReveal ? 'primary' : 'error'"
+          @click="testMode"
         >
-          <v-icon>mdi-fullscreen{{ `${showDrawer ? "" : "-exit"}` }}</v-icon>
+          {{ fieldReveal ? "表单测试" : "停止测试" }}
         </v-btn>
-      </v-fab-transition>
+        <v-spacer />
+        <v-btn v-if="!fieldReveal" text color="primary"> 提交 </v-btn>
+      </v-card-actions>
     </v-card>
 
-    <v-navigation-drawer right v-model="showDrawer">
+    <v-navigation-drawer
+      right
+      v-model="showDrawer"
+      :width="showDrawer ? 256 : 0"
+    >
       <v-expansion-panels
         v-model="panel"
-        accordion
         flat
         tile
+        accordion
         focusable
         style="margin: 0 1px"
       >
         <v-expansion-panel>
-          <v-expansion-panel-header> 属性 </v-expansion-panel-header>
+          <v-expansion-panel-header> 字段属性 </v-expansion-panel-header>
           <v-expansion-panel-content>
-            <v-text-field label="控件名称" outlined dense></v-text-field>
+            <v-text-field
+              class="mt-4"
+              label="字段名称"
+              outlined
+              dense
+              value="姓名"
+            ></v-text-field>
+            <v-slider label="字段宽度" thumb-label min="1" max="12"> </v-slider>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+        <v-expansion-panel>
+          <v-expansion-panel-header> 表单验证 </v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <v-subheader>内置规则</v-subheader>
+            <v-chip-group
+              active-class="primary--text"
+              column
+              multiple
+              v-model="selectedRules"
+            >
+              <v-chip outlined filter small v-for="rule in rules" :key="rule.label">
+                {{ rule.label }}
+              </v-chip>
+            </v-chip-group>
           </v-expansion-panel-content>
         </v-expansion-panel>
         <v-expansion-panel>
@@ -152,8 +190,7 @@
         </v-expansion-panel>
       </v-expansion-panels>
     </v-navigation-drawer>
-  </v-row>
-  <!-- </v-card> -->
+  </v-container>
 </template>
 <script>
 export default {
@@ -168,8 +205,36 @@ export default {
     showDrawer: true,
     panel: 0,
     fab: false,
-    batch: [],
+    fieldReveal: true,
+    selectedField: undefined,
+    batchFields: [],
+    formJson: `{
+      "title": "This is a form",
+      "subtitle": "v1.0",
+      "fields": [
+        { "label": "姓名", "type": "text-field", "cols": "4" },
+        { "label": "性别", "type": "text-field", "cols": "4" },
+        { "label": "电话", "type": "text-field", "cols": "4" },
+        { "label": "居住地址", "type": "text-field", "cols": "8" }
+      ]
+    }`,
+    formObject: null,
+    rules: [{ label: "必填" }, { label: "电话号码" }, { label: "电子邮件" }],
+    selectedRules: [0],
   }),
+  created() {
+    this.formObject = JSON.parse(this.formJson);
+  },
+  computed: {
+    fieldCount: function () {
+      return this.formObject.fields.length;
+    },
+  },
+  watch: {
+    selectedField: function (val) {
+      // console.log('select chang to ' + val)
+    },
+  },
   methods: {
     toggleDrawer() {
       this.showDrawer = !this.showDrawer;
@@ -178,24 +243,48 @@ export default {
       const id = parseInt(v);
       if (isNaN(id)) return;
       if (id > 0) {
-        this.batch.push(id);
+        this.batchFields.push(id);
       } else if (id < 0) {
-        this.batch = this.batch.filter(function (el) {
+        this.batchFields = this.batchFields.filter(function (el) {
           return el != -id;
         });
       }
     },
-    selectItem() {
-        console.log('select item')
-    }
+    selectItem(index) {
+      this.selectedField = index;
+    },
+    fieldUp(i) {
+      if (i <= 0) return;
+      [this.formObject.fields[i - 1], this.formObject.fields[i]] = [
+        this.formObject.fields[i],
+        this.formObject.fields[i - 1],
+      ]; // 数组开头语句前面不能省略分号
+      this.$set(this.formObject.fields, i, this.formObject.fields[i]); //手动set才能引起vue刷新列表
+      this.selectedField = i - 1;
+    },
+    fieldDown(i) {
+      if (i >= this.fieldCount - 1) return;
+      [this.formObject.fields[i], this.formObject.fields[i + 1]] = [
+        this.formObject.fields[i + 1],
+        this.formObject.fields[i],
+      ];
+      this.$set(this.formObject.fields, i, this.formObject.fields[i]);
+      this.selectedField = i + 1;
+    },
+    testMode() {
+      this.fieldReveal = !this.fieldReveal;
+    },
   },
 };
 </script>
 <style scoped>
-.border {
-  border: 1px dashed orange;
-}
-.no-border {
-  border: 1px solid transparent;
+.hover-reveal {
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 </style>
