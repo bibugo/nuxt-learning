@@ -20,6 +20,7 @@ RUN apk update \
         wget \
         git \
         zsh \
+        python2 g++ make \
     && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
     && groupmod -o -g ${USER_GID} ${USERNAME} \
